@@ -1,0 +1,284 @@
+---
+title: 'Lab-6: Assignment'
+author: Brian Kwon
+format:
+  html:
+    embed-resources: true
+---
+
+## Problem 1 : 
+
+Discuss these following examples with your class mates and explain each case and comment on the results.
+
+### a. Throwing Dice as Multinomial Distribution
+
+A multinomial distribution is a distribution that shows the likelihood of the possible results of a experiment with repeated trials in which each trial can result in a specified number of outcomes that is greater than two. A multinomial distribution could show the results of tossing a dice, because a dice can land on one of six possible values. By contrast, the results of a coin toss would be shown using a binomial distribution because there are only two possible results of each toss, heads or tails.
+
+Two additional key characteristics of a multinomial distribution are that the trials it illustrates must be independent (e.g., in the dice experiment, rolling a five does not have any impact on the number that will be rolled next) and the probability of each possible result must be constant (e.g., on each roll, there is a one in six chance of any number on the die coming up).
+
+
+### b. Rolling a die N=100 times
+
+We are rolling a die 100 times.
+
+```{r}
+#| vscode: {languageId: r}
+one.dice <- function(){
+  dice <- sample(1:6, size = 1, replace = TRUE)
+  return(dice)
+}
+one.dice() # It is simulating a dice roll.
+```
+
+```{r}
+#| vscode: {languageId: r}
+# There are 4 simulations on 100 dice rolls
+
+par(mfrow=c(2,2))
+
+for (i in 1:4){
+sims <- replicate(100, one.dice())
+table(sims)
+table(sims)/length(sims)
+plot(table(sims), xlab = 'Event', ylab = 'Frequency')
+}
+```
+
+### c. Rolling a die N=10000 times.
+
+We are rolling a die 10000 times
+
+```{r}
+#| vscode: {languageId: r}
+# This time there are 4 simulations on 10000 dice rolls. Compared to b, the distribution of each number on dice is similar.
+
+par(mfrow=c(2,2))
+
+for (i in 1:4){
+sims <- replicate(10000, one.dice())
+table(sims)
+table(sims)/length(sims)
+plot(table(sims), xlab = 'Event', ylab = 'Frequency')
+}
+```
+
+## Problem 2. Multinomial distribution and its Marginals 
+
+From the class example
+
+![](images/2023-10-04-16-53-42.png)
+
+Let's say that Molly, Ryan and Mr.Bob are buying beer(x1) ,bread(x2) and coke(x3) with probabilities (3/5,1/5,1/5).
+
+
+a. What is the probability that only 1 of them will buy beer, 2 of them will buy Bread , none will buy coke? Compare  the result with theoretical probability.
+
+
+```{r}
+#| vscode: {languageId: r}
+3*(3/5)*(1/5)^2
+```
+
+```{r}
+#| vscode: {languageId: r}
+dmultinom(c(1,2,0),prob=c(3/5,1/5,1/5))
+```
+
+So these two probability are same.
+
+b. Do a simulation for this scenario and plot the marginal distribution of x1.
+
+```{r}
+#| vscode: {languageId: r}
+df = data.frame(t(data.frame(rmultinom(10000,3,prob=c(3/5,1/5,1/5)))))
+colnames(df) = c("Beer","Bread","Coke")
+hist(df$Beer, main = "Marginal distribution of x1")
+```
+
+## Problem 3: 
+
+**Discuss this with your class mates and comment on the Plots. What can you observe from each plot?**
+
+Helpful links to answer this question:
+
+-> Contour plot also gives the densities.
+
+<https://blog.revolutionanalytics.com/2016/02/multivariate_data_with_r.html>
+
+-> Then we have these ellipses; the circular symmetric version of complex normal distribution. <https://en.wikipedia.org/wiki/Elliptical_distribution>
+
+ellipse: <https://en.wikipedia.org/wiki/Ellipse>
+
+-> <http://cs229.stanford.edu/section/gaussians.pdf>
+
+
+This tells you how when correlation coefficient increases the distribution spread and how the ellipses look like.
+-> <https://online.stat.psu.edu/stat505/book/export/html/636>
+
+```{r}
+#| vscode: {languageId: r}
+library(tidyverse)
+library(mvtnorm)
+library(plotly)
+library(MASS)
+library(ggplot2)
+```
+
+Source: https://data-se.netlify.app/2018/12/13/visualizing-a-multivariate-normal-distribution/
+
+### Simulate multivariate normal data
+
+First, let’s define a covariance matrix Σ:
+
+```{r}
+#| vscode: {languageId: r}
+sigma <- matrix(c(4,2,2,3), ncol = 2)
+sigma
+```
+
+Then, simulate observations n = n from these covariance matrix; the means need be defined, too. As the rank of our covariance matrix is 2, we need two means:
+
+```{r}
+#| vscode: {languageId: r}
+means <- c(0, 0)
+n <- 1000
+
+set.seed(42)
+x <- rmvnorm(n = n, mean = means, sigma = sigma)
+str(x)
+head(x)
+```
+
+You can see that X is bivariately normal distributed.
+
+Let’s make a data frame out of it:
+
+```{r}
+#| vscode: {languageId: r}
+d <- data.frame(x)
+names(d)
+```
+
+## a. Plotting univariate (sampled) normal data
+
+```{r}
+#| vscode: {languageId: r}
+## marginal of X1
+
+d %>% 
+  ggplot(aes(x = X1)) +
+  geom_density()
+```
+
+It is plotting the density of X1 and it is very close to normal distribution.
+
+## b. Plot theoretic normal curve and compare with the above marginal distribution of X1.
+
+```{r}
+#| vscode: {languageId: r}
+p1 <- data_frame(x = -3:3) %>% 
+  ggplot(aes(x = x)) +
+  stat_function(fun = dnorm, n = n)
+
+p1
+```
+
+This theoretical standard normal distribution with standard deviation at 1 and mean at 0. 3.a. plot is very close to this.
+
+## Plotting multivariate data
+
+## c. 2D density
+
+```{r}
+#| vscode: {languageId: r}
+p2 <- ggplot(d, aes(x = X1, y = X2)) +
+  geom_point(alpha = .5) +
+  geom_density_2d()
+p2
+```
+
+It is plotting a joint distribution of x1 and x2 with contour lines. Points are clustering around the mean and distributed like normal distribution.
+
+## e. Contour plot
+
+Geom binhex <https://ggplot2.tidyverse.org/reference/geom_hex.html>
+
+```{r}
+#| vscode: {languageId: r}
+p3 <- ggplot(d, aes(x = X1, y = X2)) +
+  geom_point(alpha = .5) +
+  geom_bin2d() +
+  scale_fill_viridis_c()
+p3
+```
+
+It is similar to 3.c, yet it shows the density of points by color.
+
+## f. 2D scatter plot and heatmap with plotly
+
+```{r}
+#| vscode: {languageId: r}
+(p <- plot_ly(d, x = ~X1, y = ~X2))
+```
+
+```{r}
+#| vscode: {languageId: r}
+add_histogram2d(p)
+```
+
+First plot is a scatter plot of x1 and x2. Second one is a heat map showing the density of 1x1 area.
+
+## g. 2D contour with plotly
+
+```{r}
+#| vscode: {languageId: r}
+add_histogram2dcontour(p)
+```
+
+It is a heat map with contour lines. Having contour lines, it has smoother boundaries.
+
+## h. 3D plot: Surface
+
+```{r}
+#| vscode: {languageId: r}
+dens <- kde2d(d$X1, d$X2)
+
+plot_ly(x = dens$x,
+        y = dens$y,
+        z = dens$z) %>% add_surface()
+```
+
+It is a plot making 3.g into 3d. When there are more points, it has a high number on z axis.
+
+## i.  3D Scatter
+
+First, compute the density of each (X1, X2) pair.
+
+```{r}
+#| vscode: {languageId: r}
+d$dens <- dmvnorm(x = d)
+```
+
+Now plot a point for each (X1, X2, dens) tuple.
+
+```{r}
+#| vscode: {languageId: r}
+p4 <- plot_ly(d, x = ~ X1, y = ~ X2, z = ~ dens,
+              marker = list(color = ~ dens,
+                            showscale = TRUE)) %>% 
+  add_markers()
+p4
+```
+
+It is plotting individual points in 3d with density. If there are more points(more density), the color changes to red. 
+
+## Problem 4: Topic Modeling (No need to submit)
+
+Try Topic Modeling on the `HPCorpus`. Where I have included Harry Potter Texts and the Lord of the Ring texts.
+
+This article explains Topic Modeling in R very clearly (please follow it)
+<https://www.tidytextmining.com/topicmodeling.html>
+
+Also,please follow this article on "stopping words"
+<https://smltar.com/stopwords.html>
+

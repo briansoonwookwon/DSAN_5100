@@ -1,0 +1,119 @@
+---
+title: "Lab-11: Assignment"
+author: "Dr. Purna Gamage"
+---
+
+## Problem 1-2 will be answered using the "Artists.csv"  data set.
+
+### Please find the "Artists.csv"  data set in the Canvas-> Lab 10 folder.
+
+Meanwhile, this is how you can retrieve Spotify Data:
+
+Spotify’s API gives you the ability to extract several audio features of a song. The available features that also have been used for this analysis are: <https://medium.com/@boplantinga/what-do-spotifys-audio-features-tell-us-about-this-year-s-eurovision-song-contest-66ad188e112a>
+
+The first step was registering my application in the API Website(<https://developer.spotify.com/documentation/web-api/>) and getting the keys (Client ID and Client Secret) for future requests. The Spotify Web API has different URIs (Uniform Resource Identifiers) to access playlists, artists, or tracks information. 
+
+I extracted all the audio features for 3 musicians Taylor Swift, John Legend and Beyonce. But we are only going to use  selected features.
+
+(If you like to use this data for your Final Project, you are more than welcome to :), but please extract more features from more musicians)
+
+```{r, eval=FALSE}
+library(Rspotify)
+library(httr)
+library(jsonlite)
+library(spotifyr)#spotifyr is an R wrapper for pulling track audio features and other information from Spotify’s Web API in bulk. 
+
+
+my_token <- get_spotify_api_token(client_id = "YOUR KEY", 
+                                  client_secret = "YOUR KEY") # you have to register and get your keys
+
+#or
+get_spotify_access_token(
+  client_id = Sys.getenv(SPOTIFY_CLIENT_ID),
+  client_secret = Sys.getenv(SPOTIFY_CLIENT_SECRET)
+)
+
+
+#You can get much more details here
+#https://cran.r-project.org/web/packages/spotidy/vignettes/Connecting-with-the-Spotify-API.html
+
+
+Taylor_Swift <- get_artist_audio_features("Taylor Swift")
+John_Legend <- get_artist_audio_features("John Legend")
+Beyonce <- get_artist_audio_features("Beyonce")
+
+## You can also access the variables by indexes, but the names are here to see what I'm retreiving
+
+Taylor_Swift_A <-data.frame(Taylor_Swift$artist_name,Taylor_Swift$valence,
+                            Taylor_Swift$danceability,Taylor_Swift$energy,Taylor_Swift$loudness,
+                            Taylor_Swift$speechiness,Taylor_Swift$acousticness,Taylor_Swift$liveness,
+                            Taylor_Swift$tempo,Taylor_Swift$track_name, Taylor_Swift$album_name,Taylor_Swift$album_release_year)
+colnames(Taylor_Swift_A) <- c("artist_name","Valence","danceability","energy",
+                              "loudness","speechiness","acousticness","liveness",
+                              "tempo","track_name","album_name","album_release_year")
+head(Taylor_Swift_A)
+
+
+John_Legend_A <-data.frame(John_Legend$artist_name,John_Legend$valence,
+                            John_Legend$danceability,John_Legend$energy,John_Legend$loudness,
+                            John_Legend$speechiness,John_Legend$acousticness,John_Legend$liveness,
+                            John_Legend$tempo,John_Legend$track_name, John_Legend$album_name,John_Legend$album_release_year)
+
+colnames(John_Legend_A) <- c("artist_name","alence","danceability","energy",
+                              "loudness","speechiness","acousticness","liveness",
+                              "tempo","track_name","album_name","album_release_year")
+head(John_Legend_A)
+
+
+Beyonce_A <-data.frame(Beyonce$artist_name,Beyonce$valence,
+                       Beyonce$danceability,Beyonce$energy,Beyonce$loudness,
+                       Beyonce$speechiness,Beyonce$acousticness,Beyonce$liveness,
+                       Beyonce$tempo,Beyonce$track_name, Beyonce$album_name, Beyonce$album_release_year)
+
+colnames(Beyonce_A) <- c("artist_name","Valence","danceability","energy",
+                             "loudness","speechiness","acousticness","liveness",
+                             "tempo","track_name","album_name","album_release_year")
+head(Beyonce_A)
+
+
+Artists <-rbind(Taylor_Swift_A,John_Legend_A, Beyonce_A)
+head(Artists)
+write.csv(Artists, "Artists.csv")
+
+
+```
+
+You can download the data set "Artists.csv" from Canvas->"Midterm" Folder.
+
+## Problem 1: Hypothesis Testing - part 1 
+
+Data Science Question: Does the average "speechiness" is larger for Taylor Swift than that of  John Legend ?
+
+a. Perform EDA (Exploratory Data Analysis) using some Data Visualizations.
+
+b. Write the null and alternative hypothesis for this test.
+
+c. Perform a t-test and state your results and non-technical conclusion.
+
+d. What can you say about the confidence interval? (Interpret)
+
+e. Perform a bootstrap test for ratio of means of "speechiness", Find the 95% bootstrap percentile interval for the ratio of means and write your conclusion. 
+
+f. What is the bootstrap estimate of the bias for the mean ratio?
+
+g. Compare your results from part c) and part e).
+
+
+## Problem 2: Hypothesis Testing-part 2 
+
+Data Science Question: Does "Valence" of the songs depends on the Artist?
+
+Valence: A measure from 0.0 to 1.0 describing the musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry).
+
+a. Create a new variable with the name " Valence_C" and add it to the "Artists" data set. Fill this variable with values "more positive","Moderate","more negative" according to the value of "Valence" such that 0.8-1 is "more positive", 0.5-0.79 is "Moderate" and 0.0-0.49 is "more negative".
+
+b. Carry out an appropriate test to make an informed decision for the above data science question using this new created variable  "Valence_C". Don't forget to Write the null and alternative hypothesis.
+
+c. What is your conclusion?
+
+d. With your experience, what is your opinion about the conclusion you made in part c?

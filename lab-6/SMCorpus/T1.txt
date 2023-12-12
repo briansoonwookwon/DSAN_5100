@@ -1,0 +1,2 @@
+Statistics is very important to Data Scientists. Data scientists must have a deep understanding of statistical concepts in order to carry out quantitative analysis on the available data. 
+

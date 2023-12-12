@@ -1,0 +1,1 @@
+Machine learning focuses on the development of computer programs that can access data and use it learn for themselves.

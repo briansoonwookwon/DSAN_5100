@@ -1,0 +1,187 @@
+---
+title: Lab assignment-1
+jupyter: ir
+---
+
+Read and work through all code in the lab demonstration section, and do all exercises below
+
+**Note**: The version on the website is just an HTML preview, please go to the share-point folder to download the actual assignment and dependencies.
+
+**SUBMISSION**: Upload the completed *assignment* to Canvas (in HTML or PDF). Make sure ALL images & outputs are included! Please do not submit the completed demonstration, only the completed assignment.
+
+
+## Problem-1
+
+* This relates to Example 1 in Lab-1, you can recycle code from there 
+* Mike had the first three successes in trials 6,8 , and 9 . He had six failures until he reached three successes. Do you think Mike has success probability $p=0.5$ or better? Can a simulation give an answer? To do this do.
+  * simulate the number of tosses needed to get to three successes, use the probability success probability p = 0.5. (Hint: use the “mytoss” function we did in the Lab class)
+  * Run many simulations (say 10,000) with this success probability. (use the “myattempts” function from the class)
+  * If Mike’s success probability were 0.5 or better, he would not need a lot of attempts. Find the fraction of simulations where three successes were reached after 9 tosses or later by somebody with success probability 0.5.
+
+```{r}
+#| vscode: {languageId: r}
+mytoss = function(p){
+  u = runif(1)
+  x = as.numeric(u < p)
+  return(x)
+}
+```
+
+```{r}
+#| vscode: {languageId: r}
+# This function calculates the number of total attempts to get a success
+
+myattempts = function(p){
+  counter = 1
+  while (mytoss(p) == 0){ counter = counter + 1 }
+  return(counter) 
+}
+```
+
+```{r}
+#| vscode: {languageId: r}
+replicate(10,mytoss(.5))
+```
+
+```{r}
+#| vscode: {languageId: r}
+set.seed(23)
+replicate(3,myattempts(0.5))
+```
+
+This means there were 2 attempts to get a first scuccess, 1 attempt to get a second success, and 3 attempts to get a third success, which is total of 6 attempts.
+
+```{r}
+#| vscode: {languageId: r}
+# Number of total attempts until the 3 successes
+
+sum(replicate(3,myattempts(0.5)))
+```
+
+```{r}
+#| vscode: {languageId: r}
+# 10000 simulations of calculating the total number of attempts until the 3 successes
+
+replicate(10000,sum(replicate(3,myattempts(0.5))))
+```
+
+```{r}
+#| vscode: {languageId: r}
+# Number of simulations where Mike needs more than 9 attempts to get the 3 successes
+
+set.seed(23)
+s = sum(replicate(10000,sum(replicate(3,myattempts(0.5))))>9)
+s
+s/10000 # Calculating the fraction
+```
+
+The fraction of simulation where it needs more than 9 attempts to get the 3 successes is 0.0925 when the success probability is 0.5. This means there is 90.75% chance that this person gets 3 successes in less than or equal to 9 attempts. It implies, therefore, Mike is most likely to have a better probability than 0.5, because he got 3 successes in 9 attempts.
+
+## Problem 2: 
+
+Baby names for male and female babies.
+
+Repeat Example 2 using `data/yob2010.txt`. Interpret your results (in wording relates to the problem) for each simulation step by step.
+
+Do the following 
+
+* Read csv file with baby names and make new column names
+* Make a the table function returns a vector whose components have names.
+* Compute the number of female and male births, using the aggregate() function
+* Sample 30 names with replacement. Use probabilities that are proportional to the counts.
+* Compute actual probabilities of occurrence
+* Find all names which occur both as male and female baby names. First make subsets of female and male births. Then find the set intersection of the names.
+* Find out how often each of these names is used for females and males. Use sub-setting to make data frames of female and male birth data for names that are used for both genders. We may drop the gender variable. 
+* Now merge the two data frame by names. R finds the merge variable (i.e. name) automatically.
+
+```{r}
+#| vscode: {languageId: r}
+# Read csv file with baby names and make new column names
+
+df = read.csv("data/yob2010.txt", header = FALSE)
+names(df) = c("names","gender","count")
+head(df)
+```
+
+```{r}
+#| vscode: {languageId: r}
+# Make a the table function returns a vector whose components have names.
+
+table(df$gender)
+```
+
+There are 19800 female names and 14241 male names.
+
+```{r}
+#| vscode: {languageId: r}
+# Compute the number of female and male births, using the aggregate() function
+
+aggregate(count ~ gender, data = df, FUN = "sum")
+```
+
+There are 1772738 births of females and 1913851 births of males.
+
+```{r}
+#| vscode: {languageId: r}
+# Sample 30 names with replacement. Use probabilities that are proportional to the counts.
+# Compute actual probabilities of occurrence
+
+df$probs = df$count/sum(df$count)
+head(df)
+sample(df$names,30,replace=TRUE,prob=df$probs)
+```
+
+Computing the probabilities of occurrence of each name, it is possible to sample 30 names using those probability.
+
+```{r}
+#| vscode: {languageId: r}
+# Find all names which occur both as male and female baby names. First make subsets of female and male births. Then find the set intersection of the names.
+
+femalebirths = df[df$gender == "F",]
+malebirths = df[df$gender == "M",]
+both = intersect(femalebirths$name, malebirths$name)
+head(both)
+length(unique(both))
+```
+
+There are 2438 names used on both female and male babies.
+
+```{r}
+#| vscode: {languageId: r}
+# Find out how often each of these names is used for females and males. Use sub-setting to make data frames of female and male birth data for names 
+# that are used for both genders. We may drop the gender variable.
+
+df.female.both <- df[is.element(df$name,both) & df$gender == "F",c(1,3)]
+names(df.female.both) <- c("name","female.count")
+head(df.female.both)
+df.male.both <- df[is.element(df$name,both) & df$gender == "M",c(1,3)]
+names(df.male.both) <- c("name","male.count")
+head(df.male.both)
+```
+
+Among the names used in both gender, Isabella, Sophia, Emma, Olivia, Ava, and Emily are used the most in female babies, and Jacob, Ethan, Michael, Jayden, William, and Alexander are used the most in male babies.
+
+```{r}
+#| vscode: {languageId: r}
+# Now merge the two data frame by names. R finds the merge variable (i.e. name) automatically.
+
+df.both = merge(df.female.both,df.male.both)
+head(df.both)
+```
+
+## Problem-3
+
+* Problem 1.5 in ch. 1 of Dalgaard. On p. 27, replicate was used to simulate the distribution of the mean of 20 random numbers from the exponential distribution by repeating the operation 10 times. That code is `replicate(10,mean(rexp(20)))`
+
+How would you do the same thing with sapply?
+
+```{r}
+#| vscode: {languageId: r}
+replicate(10,mean(rexp(20)))
+```
+
+```{r}
+#| vscode: {languageId: r}
+sapply(data.frame(replicate(10,rexp(20))),mean)
+```
+

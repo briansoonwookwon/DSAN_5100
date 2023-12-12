@@ -1,0 +1,19 @@
+project:
+  type: website
+
+website:
+  title: "DSAN 5100: Final Project"
+  navbar:
+    left:
+      - text: About Me
+        href: ../../index.html
+      - href: index.qmd
+        text: Report
+
+format:
+  html:
+    theme: yeti
+    toc: true
+
+
+
